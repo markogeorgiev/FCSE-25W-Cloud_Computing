@@ -189,3 +189,56 @@ pytest
 
 The proof-of-work tests run without a database. The API tests use mocked database access so they can verify request handling and queued job creation without a live DBaaS connection.
 
+## Workload Evaluation
+
+The standalone async workload generator is in:
+
+```text
+evaluation_scripts/workload_generator.py
+```
+
+Run the full official benchmark against the GCP load balancer:
+
+```powershell
+python evaluation_scripts/workload_generator.py --base-url http://8.233.134.116 --difficulty 6 --jobs-per-rate 120 --worker-count-per-vm 2
+```
+
+Preview the schedule without sending requests:
+
+```powershell
+python evaluation_scripts/workload_generator.py --dry-run
+```
+
+By default, it tests the official RPS levels `1,10,50,100,200,300,400,500,600,700,800,900,1000` with exactly `120` submitted jobs per rate. It submits asynchronously through the load balancer, polls `GET /pow/{job_id}` until jobs finish or time out, and writes results under `results/workload/<timestamp>/`.
+
+To run each target RPS for a fixed submission duration instead, use the additional duration-based generator:
+
+```powershell
+python.exe evaluation_scripts/duration_workload_generator.py --base-url http://8.233.134.116 --difficulty 5 --duration-per-rate-seconds 5 --worker-count-per-vm 2 --sample-vm-count --mig-name pow-worker-mig --mig-zone europe-west1-b
+```
+
+With `--duration-per-rate-seconds 5`, the script submits `target_rps * 5` jobs at each level. For example, `1` RPS submits `5` jobs, `100` RPS submits `500` jobs, and `1000` RPS submits `5000` jobs. The submission window is fixed; total completion time can be longer because the script still waits for every submitted job to complete, fail, or time out.
+
+Output files:
+
+- `raw_requests.csv` and `raw_requests.jsonl` contain one row/object per submitted job.
+- `run_summaries.csv` and `run_summaries.json` contain one summary per target RPS.
+- `experiment_metadata.json` records configuration and methodology notes.
+
+Optional VM count sampling:
+
+```powershell
+python evaluation_scripts/workload_generator.py --sample-vm-count --mig-name YOUR_MIG_NAME --mig-zone YOUR_ZONE
+```
+
+The generator benchmarks the live autoscaling Managed Instance Group as deployed behind one load balancer. It intentionally does not run fixed 1 VM vs 2 VM vs 3 VM experiments.
+
+How to use the results:
+
+- Workload Generator: `raw_requests.csv` proves every request went through POST, polling, and terminal job state collection.
+- Speedup: calculate later from completed throughput or p95 end-to-end time across autoscaling behavior.
+- Execution Time: plot `p95_client_end_to_end_time_ms` or `p95_server_end_to_end_time_ms` by `target_rps`.
+- Throughput: plot `completed_throughput_rps` by `target_rps`.
+- Scalability: discuss throughput, p95 latency, queue behavior, and observed VM count as RPS increases.
+- Elasticity: use observed VM count changes, backlog behavior, and cooldown recovery.
+- Cost Analysis: combine VM counts/runtime with GCP pricing, then relate cost to throughput and latency.

@@ -41,3 +41,24 @@ CREATE TABLE IF NOT EXISTS benchmark_runs (
     created_at TIMESTAMP NOT NULL
 );
 
+ALTER TABLE pow_jobs
+ADD COLUMN IF NOT EXISTS experiment_id UUID,
+ADD COLUMN IF NOT EXISTS target_rps INTEGER,
+ADD COLUMN IF NOT EXISTS run_label TEXT,
+ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS post_response_at TIMESTAMP;
+
+CREATE INDEX IF NOT EXISTS idx_pow_jobs_experiment_id
+ON pow_jobs (experiment_id);
+
+CREATE INDEX IF NOT EXISTS idx_pow_jobs_experiment_status
+ON pow_jobs (experiment_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_pow_jobs_experiment_created_at
+ON pow_jobs (experiment_id, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_pow_jobs_target_rps
+ON pow_jobs (target_rps);
+
+
+SELECT * FROM pow_jobs;

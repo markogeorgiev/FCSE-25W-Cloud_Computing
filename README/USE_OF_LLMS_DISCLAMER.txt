@@ -1,0 +1,13 @@
+*This project was created with the help of AI tools.* 
+
+- Specifically, Grammarly Pro was used for improving sentences and senentnece structure of the paper. 
+
+- ChatGPT 5.5-Thinking (Extended) was used when there to solve issues related to the Startup Script of the instance template. 
+
+- ChatGPT Codex 5.5 (Extended) was used to aid in creating, but *mainly for tweaking* the plotting scripts, in order to get approirate zoom levels and axies distributions/buckets. 
+
+- ChatGPT Codex 5.5 (Extended) was used to aid in the creation of duration_workload_generator.py, which was the main worklaod script. 
+
+- ChatGPT Codex 5.5 (Extended) was used to construct some worklaod scripts which WERE NOT used in the project. 
+
+
